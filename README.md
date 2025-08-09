@@ -15,3 +15,8 @@ This is my personal portfolio website showcasing my skills, projects, and experi
 3.Database: MongoDB / PostgreSQL (if applicable)
 4.Styling: Tailwind CSS / Bootstrap
 5.Deployment: Vercel / Netlify / GitHub Pages
+
+Result
+
+
+http://127.0.0.1:5500/Portfolio.html
