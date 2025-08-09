@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaibhav Adhe - Full Stack Developer Portfolio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+            cursor: grab;
+        }
+
+        body:active {
+            cursor: grabbing;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 150, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            pointer-events: all;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(0, 150, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.5);
+        }
+
+        .content-panel {
+            position: fixed;
+            right: -420px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 400px;
+            max-height: 85vh;
+            background: rgba(10, 10, 30, 0.9);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 150, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            transition: right 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            pointer-events: all;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .content-panel.active {
+            right: 20px;
+        }
+
+        .content-panel h2 {
+            color: #0096ff;
+            margin-bottom: 20px;
+            font-size: 32px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+        }
+
+        .content-panel h3 {
+            color: #00d4ff;
+            margin: 25px 0 12px 0;
+            font-size: 20px;
+            border-bottom: 2px solid rgba(0, 150, 255, 0.3);
+            padding-bottom: 8px;
+        }
+
+        .content-panel p, .content-panel li {
+            line-height: 1.7;
+            margin-bottom: 12px;
+            color: #e0e0e0;
+            font-size: 15px;
+        }
+
+        .skill-category {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 150, 255, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #0096ff;
+        }
+
+        .skill-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 10px;
+            border-radius: 5px;
+            margin: 12px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #0096ff, #00d4ff);
+            border-radius: 5px;
+            transition: width 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .project-card {
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 212, 255, 0.05));
+            border: 1px solid rgba(0, 150, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 150, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 150, 255, 0.2);
+            border-color: rgba(0, 150, 255, 0.4);
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .tech-tag {
+            background: rgba(0, 150, 255, 0.2);
+            color: #00d4ff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .contact-form input, .contact-form textarea {
+            background: rgba(0, 150, 255, 0.1);
+            border: 2px solid rgba(0, 150, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-form input:focus, .contact-form textarea:focus {
+            outline: none;
+            border-color: #0096ff;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
+        }
+
+        .contact-form input::placeholder, .contact-form textarea::placeholder {
+            color: #aaa;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #0096ff, #00d4ff);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 150, 255, 0.4);
+        }
+
+        .intro-text {
+            position: fixed;
+            top: 50%;
+            left: 50px;
+            transform: translateY(-50%);
+            max-width: 450px;
+            z-index: 50;
+            animation: fadeInLeft 2s ease;
+        }
+
+        .intro-text h1 {
+            font-size: 52px;
+            background: linear-gradient(45deg, #0096ff, #00d4ff, #0066cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+            font-weight: 700;
+        }
+
+        .intro-text .subtitle {
+            font-size: 24px;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .intro-text p {
+            font-size: 18px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: rgba(0, 150, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(0, 150, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .achievement-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0096ff;
+            font-size: 28px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(0, 150, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #0096ff, #00d4ff);
+            border-radius: 2px;
+            animation: loading 3s ease-in-out;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px) translateY(-50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateY(-50%);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .intro-text {
+                left: 20px;
+                max-width: 320px;
+            }
+            
+            .intro-text h1 {
+                font-size: 42px;
+            }
+            
+            .content-panel {
+                width: 95%;
+                right: -100%;
+            }
+            
+            .content-panel.active {
+                right: 2.5%;
+            }
+            
+            .nav-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 12px 15px;
+            }
+            
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div>Initializing Portfolio...</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div class="ui-overlay">
+        <div class="nav-bar">
+            <button class="nav-btn active" data-section="home">Home</button>
+            <button class="nav-btn" data-section="about">About</button>
+            <button class="nav-btn" data-section="skills">Skills</button>
+            <button class="nav-btn" data-section="education">Education</button>
+            <button class="nav-btn" data-section="projects">Projects</button>
+            <button class="nav-btn" data-section="experience">Experience</button>
+            <button class="nav-btn" data-section="contact">Contact</button>
+        </div>
+
+        <div class="intro-text" id="intro-text">
+            <h1>Vaibhav Adhe</h1>
+            <p class="subtitle">Full Stack Developer</p>
+            <p>Information Technology Graduate specializing in MERN Stack development with expertise in Deep Learning and Web Technologies</p>
+            <div class="achievement-badge">🏆 LeetCode Silver Medal</div>
+            <div class="achievement-badge">🚀 350+ Problems Solved</div>
+            <div class="achievement-badge">⭐ CGPA: 9.10</div>
+        </div>
+
+        <div class="content-panel" id="about-panel">
+            <h2>About Me</h2>
+            <p>I'm Vaibhav Adhe, a passionate Information Technology graduate from PES Modern College of Engineering, Pune, with a CGPA of 9.10. I specialize in full-stack web development using the MERN stack and have hands-on experience with machine learning projects.</p>
+            
+            <h3>Professional Summary</h3>
+            <p>With expertise in Java, Python, and modern web technologies, I have successfully completed internships and developed innovative projects including deep fake detection systems and interactive learning platforms.</p>
+            
+            <h3>Key Achievements</h3>
+            <ul>
+                <li>🏆 LeetCode Silver Medal Winner</li>
+                <li>🥈 Mpulse-Ignite Competition - Rank 2</li>
+                <li>💻 350+ LeetCode Problems Solved</li>
+                <li>📈 Unstop Code Rank: 35</li>
+                <li>🎓 B.E. in IT with 9.10 CGPA</li>
+            </ul>
+            
+            <h3>Personal Interests</h3>
+            <p>Beyond coding, I enjoy playing Kabaddi, Badminton, and Carrom. I'm also passionate about traveling and exploring new technologies.</p>
+        </div>
+
+        <div class="content-panel" id="skills-panel">
+            <h2>Skills & Technologies</h2>
+            
+            <div class="skill-category">
+                <h3>Programming Languages</h3>
+                <div>Java & DSA</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="90%"></div></div>
+                <div>Python</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="85%"></div></div>
+                <div>C++ (Basics)</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="70%"></div></div>
+            </div>
+            
+            <div class="skill-category">
+                <h3>Web Development (MERN Stack)</h3>
+                <div>ReactJS</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="88%"></div></div>
+                <div>NodeJS & ExpressJS</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="85%"></div></div>
+                <div>JavaScript</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="87%"></div></div>
+                <div>HTML/CSS/Bootstrap</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="92%"></div></div>
+            </div>
+            
+            <div class="skill-category">
+                <h3>Databases & APIs</h3>
+                <div>MongoDB</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="80%"></div></div>
+                <div>MySQL & SQL</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="82%"></div></div>
+                <div>REST APIs</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="85%"></div></div>
+            </div>
+            
+            <div class="skill-category">
+                <h3>Tools & Design</h3>
+                <div>Git & GitHub</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="85%"></div></div>
+                <div>Figma</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="75%"></div></div>
+                <div>Canva</div>
+                <div class="skill-bar"><div class="skill-progress" data-width="80%"></div></div>
+            </div>
+        </div>
+
+        <div class="content-panel" id="education-panel">
+            <h2>Education</h2>
+            
+            <div class="project-card">
+                <h3>B.E. Information Technology (2025)</h3>
+                <p><strong>PES Modern College of Engineering, Pune</strong></p>
+                <p><strong>CGPA: 9.10</strong> - Excellent Academic Performance</p>
+                <div class="project-tech">
+                    <span class="tech-tag">OOPS</span>
+                    <span class="tech-tag">DSA</span>
+                    <span class="tech-tag">DBMS</span>
+                    <span class="tech-tag">CNS</span>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <h3>HSC Science (2021)</h3>
+                <p><strong>SMVM Jr. College Watur Fata</strong></p>
+                <p><strong>Percentage: 83.5%</strong></p>
+                <div class="project-tech">
+                    <span class="tech-tag">Physics</span>
+                    <span class="tech-tag">Chemistry</span>
+                    <span class="tech-tag">Mathematics</span>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <h3>SSC (2019)</h3>
+                <p><strong>SMVM School Watur Fata</strong></p>
+                <p><strong>Percentage: 70.4%</strong></p>
+            </div>
+
+            <h3>Certifications</h3>
+            <ul>
+                <li>🏅 <strong>Infosys Springboard</strong> - Software Engineering & Frontend Development (Aug 2024)</li>
+                <li>🐍 <strong>Coursera</strong> - Python Programming (Nov 2022)</li>
+                <li>📚 <strong>Great Learning</strong> - Python Programming (Nov 2022)</li>
+                <li>🎓 <strong>IIT Bombay</strong> - C++ & Advanced C++ Training, Java (Dec 2022)</li>
+                <li>🌐 <strong>Edureka</strong> - Full Stack Web Development (Oct 2022)</li>
+            </ul>
+        </div>
+
+        <div class="content-panel" id="projects-panel">
+            <h2>Featured Projects</h2>
+            
+            <div class="project-card">
+                <h3>🎭 Deep Fake Video Detection</h3>
+                <p>Advanced machine learning project using neural networks to detect deep fake videos. Implemented using GAN (Generative Adversarial Network) and Auto Encoders with computer vision techniques.</p>
+                <p><strong>Key Features:</strong></p>
+                <ul>
+                    <li>Trained on 6,000 videos (50% real, 50% fake)</li>
+                    <li>70/30 train-test split ratio</li>
+                    <li>ResNext CNN, RNN, and LSTM implementation</li>
+                    <li>Multiple datasets: Face-Forensic++, Deepfake Challenge, Celeb-DF</li>
+                </ul>
+                <div class="project-tech">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">TensorFlow</span>
+                    <span class="tech-tag">Computer Vision</span>
+                    <span class="tech-tag">Neural Networks</span>
+                    <span class="tech-tag">Deep Learning</span>
+                </div>
+            </div>
+            
+            <div class="project-card">
+                <h3>📚 Study-Notion Platform</h3>
+                <p>Interactive learning platform designed to make education more accessible and engaging. Full-stack web application with dynamic user interface and seamless API integration.</p>
+                <p><strong>Technical Implementation:</strong></p>
+                <ul>
+                    <li>Frontend: ReactJS for dynamic UI</li>
+                    <li>Backend: NodeJS with ExpressJS</li>
+                    <li>RESTful API architecture</li>
+                    <li>Responsive design for all devices</li>
+                </ul>
+                <div class="project-tech">
+                    <span class="tech-tag">ReactJS</span>
+                    <span class="tech-tag">NodeJS</span>
+                    <span class="tech-tag">ExpressJS</span>
+                    <span class="tech-tag">REST API</span>
+                    <span class="tech-tag">MongoDB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-panel" id="experience-panel">
+            <h2>Professional Experience</h2>
+            
+            <div class="project-card">
+                <h3>🚀 Web Development Intern</h3>
+                <p><strong>Prodigy InfoTech, Pune</strong></p>
+                <p><strong>Duration:</strong> Feb 2024 - March 2024</p>
+                
+                <h4>Responsibilities & Achievements:</h4>
+                <ul>
+                    <li>Successfully completed web development internship program</li>
+                    <li>Accomplished 3 out of 5 assigned tasks using modern web technologies</li>
+                    <li>Gained hands-on experience with industry best practices</li>
+                    <li>Familiarized with key development workflows and methodologies</li>
+                </ul>
+                
+                <h4>Technologies Used:</h4>
+                <div class="project-tech">
+                    <span class="tech-tag">HTML5</span>
+                    <span class="tech-tag">CSS3</span>
+                    <span class="tech-tag">Bootstrap</span>
+                    <span class="tech-tag">JavaScript</span>
+                </div>
+                
+                <p><strong>Outcome:</strong> Received certificate of completion and valuable industry insights.</p>
+            </div>
+            
+            <h3>🏆 Competitive Programming Achievements</h3>
+            <div class="project-card">
+                <h4>Problem Solving Excellence</h4>
+                <ul>
+                    <li>🥇 <strong>LeetCode Silver Medal</strong> - Outstanding performance in competitive programming</li>
+                    <li>📊 <strong>350+ Problems Solved</strong> - Consistent practice and skill development</li>
+                    <li>🏅 <strong>Unstop Code Rank: 35</strong> - Top performer in coding competitions</li>
+                    <li>🥈 <strong>Mpulse-Ignite Rank 2</strong> - Runner-up in technical competition</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-panel" id="contact-panel">
+            <h2>Get In Touch</h2>
+            <p>Let's connect and discuss opportunities for collaboration!</p>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span>📧</span>
+                    <span>vaibhavadhe0248@gmail.com</span>
+                </div>
+                <div class="contact-item">
+                    <span>📱</span>
+                    <span>+91 9307110248</span>
+                </div>
+                <div class="contact-item">
+                    <span>📍</span>
+                    <span>Pune, Maharashtra, India</span>
+                </div>
+                <div class="contact-item">
+                    <span>💼</span>
+                    <span>LinkedIn Profile</span>
+                </div>
+                <div class="contact-item">
+                    <span>🐙</span>
+                    <span>GitHub Profile</span>
+                </div>
+            </div>
+            
+            <h3>Send a Message</h3>
+            <form class="contact-form" id="contact-form">
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <input type="text" placeholder="Subject" required>
+                <textarea rows="4" placeholder="Your Message" required></textarea>
+                <button type="submit" class="send-btn">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 3D Scene Setup
+        let scene, camera, renderer, mainObject, particles, floatingCubes = [];
+        let mouse = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+        let currentSection = 'home';
+        let animationId;
+
+        function init3D() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000011, 1, 100);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 6;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000011, 1);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Create main geometric object
+            createMainObject();
+            createFloatingCubes();
+            createParticleSystem();
+            setupLighting();
+
+            // Start animation
+            animate();
+            
+            // Hide loading after 3 seconds
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 3000);
+        }
+
+        function createMainObject() {
+            // Complex geometry combining multiple shapes
+            const group = new THREE.Group();
+            
+            // Main sphere
+            const sphereGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x0096ff,
+                transparent: true,
+                opacity: 0.7,
+                shininess: 100
+            });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            group.add(sphere);
+
+            // Wireframe overlay
+            const wireframeGeometry = new THREE.SphereGeometry(1.6, 16, 16);
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00d4ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.4
+            });
+            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            group.add(wireframe);
+
+            // Rotating rings
+            for(let i = 0; i < 3; i++) {
+                const ringGeometry = new THREE.TorusGeometry(2 + i * 0.3, 0.05, 16, 100);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0.6 + i * 0.1, 1, 0.5),
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = (Math.PI / 3) * i;
+                ring.rotation.y = (Math.PI / 4) * i;
+                group.add(ring);
+            }
+
+            mainObject = group;
+            scene.add(mainObject);
+        }
+
+        function createFloatingCubes() {
+            for(let i = 0; i < 20; i++) {
+                const size = Math.random() * 0.3 + 0.1;
+                const geometry = new THREE.BoxGeometry(size, size, size);
+                const material = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6),
+                    transparent: true,
+                    opacity: 0.7
+                });
+                
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                
+                cube.userData = {
+                    originalPosition: cube.position.clone(),
+                    rotationSpeed: {
+                        x: (Math.random() - 0.5) * 0.02,
+                        y: (Math.random() - 0.5) * 0.02,
+                        z: (Math.random() - 0.5) * 0.02
+                    },
+                    floatSpeed: Math.random() * 0.02 + 0.01
+                };
+                
+                floatingCubes.push(cube);
+                scene.add(cube);
+            }
+        }
+
+        function createParticleSystem() {
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 2000;
+            const posArray = new Float32Array(particlesCount * 3);
+            const colorsArray = new Float32Array(particlesCount * 3);
+
+            for(let i = 0; i < particlesCount * 3; i += 3) {
+                // Position
+                posArray[i] = (Math.random() - 0.5) * 100;
+                posArray[i + 1] = (Math.random() - 0.5) * 100;
+                posArray[i + 2] = (Math.random() - 0.5) * 100;
+                
+                // Colors
+                const color = new THREE.Color();
+                color.setHSL(0.6 + Math.random() * 0.2, 0.8, 0.6);
+                colorsArray[i] = color.r;
+                colorsArray[i + 1] = color.g;
+                colorsArray[i + 2] = color.b;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+        }
+
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+            scene.add(ambientLight);
+
+            // Main directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Blue point light
+            const pointLight1 = new THREE.PointLight(0x0096ff, 2, 50);
+            pointLight1.position.set(-10, -10, -10);
+            scene.add(pointLight1);
+
+            // Cyan point light
+            const pointLight2 = new THREE.PointLight(0x00d4ff, 1.5, 30);
+            pointLight2.position.set(10, -5, 10);
+            scene.add(pointLight2);
+
+            // Rotating colored lights
+            const rotatingLight = new THREE.PointLight(0xff6b6b, 1, 20);
+            rotatingLight.position.set(5, 5, 5);
+            scene.add(rotatingLight);
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+
+            // Main object rotation
+            if (mainObject) {
+                mainObject.rotation.x += (targetRotation.x - mainObject.rotation.x) * 0.05;
+                mainObject.rotation.y += (targetRotation.y - mainObject.rotation.y) * 0.05;
+                
+                // Auto rotation
+                mainObject.rotation.y += 0.005;
+                
+                // Rings rotation
+                mainObject.children.forEach((child, index) => {
+                    if (child.geometry && child.geometry.type === 'TorusGeometry') {
+                        child.rotation.x += 0.01 * (index + 1);
+                        child.rotation.z += 0.008 * (index + 1);
+                    }
+                });
+            }
+
+            // Floating cubes animation
+            floatingCubes.forEach((cube, index) => {
+                cube.rotation.x += cube.userData.rotationSpeed.x;
+                cube.rotation.y += cube.userData.rotationSpeed.y;
+                cube.rotation.z += cube.userData.rotationSpeed.z;
+                
+                cube.position.y = cube.userData.originalPosition.y + 
+                    Math.sin(time * cube.userData.floatSpeed + index) * 2;
+            });
+
+            // Particle system rotation
+            if (particles) {
+                particles.rotation.y += 0.0005;
+                particles.rotation.x += 0.0002;
+            }
+
+            // Dynamic lighting
+            const lights = scene.children.filter(child => child.isPointLight);
+            lights.forEach((light, index) => {
+                if (index === 2) { // Rotating light
+                    light.position.x = Math.cos(time * 0.5) * 8;
+                    light.position.z = Math.sin(time * 0.5) * 8;
+                }
+            });
+
+            // Color transitions based on section
+            updateSceneColors();
+
+            renderer.render(scene, camera);
+        }
+
+        function updateSceneColors() {
+            const colorSchemes = {
+                home: { primary: 0x0096ff, secondary: 0x00d4ff, accent: 0x0066cc },
+                about: { primary: 0xff6b6b, secondary: 0xff8e8e, accent: 0xcc5555 },
+                skills: { primary: 0x4ecdc4, secondary: 0x6fd8d2, accent: 0x3ea39d },
+                education: { primary: 0x45b7d1, secondary: 0x6bc5d8, accent: 0x3692a7 },
+                projects: { primary: 0x96ceb4, secondary: 0xa8d4c2, accent: 0x7ba590 },
+                experience: { primary: 0xfeca57, secondary: 0xfed872, accent: 0xcb9f46 },
+                contact: { primary: 0x6c5ce7, secondary: 0x8b7eeb, accent: 0x564ab9 }
+            };
+
+            const scheme = colorSchemes[currentSection] || colorSchemes.home;
+
+            if (mainObject && mainObject.children[0]) {
+                const targetColor = new THREE.Color(scheme.primary);
+                mainObject.children[0].material.color.lerp(targetColor, 0.02);
+            }
+        }
+
+        // Event listeners
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            targetRotation.y = mouse.x * Math.PI * 0.3;
+            targetRotation.x = mouse.y * Math.PI * 0.3;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // UI interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const panels = document.querySelectorAll('.content-panel');
+            const introText = document.getElementById('intro-text');
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const section = btn.dataset.section;
+                    currentSection = section;
+
+                    // Update active button
+                    navButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Hide all panels
+                    panels.forEach(panel => panel.classList.remove('active'));
+
+                    // Show intro text only on home
+                    if (section === 'home') {
+                        introText.style.display = 'block';
+                    } else {
+                        introText.style.display = 'none';
+                        // Show corresponding panel
+                        const panel = document.getElementById(`${section}-panel`);
+                        if (panel) {
+                            panel.classList.add('active');
+                            
+                            // Animate skill bars if skills section
+                            if (section === 'skills') {
+                                setTimeout(() => {
+                                    const skillBars = panel.querySelectorAll('.skill-progress');
+                                    skillBars.forEach(bar => {
+                                        bar.style.width = bar.dataset.width;
+                                    });
+                                }, 500);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Contact form
+            document.getElementById('contact-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Thank you for your message, Vaibhav will get back to you soon!');
+                e.target.reset();
+            });
+
+            // Initialize 3D scene
+            init3D();
+
+            // Add click effects to project cards
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+
+        // Add scroll-like behavior with mouse wheel
+        window.addEventListener('wheel', (event) => {
+            if (camera) {
+                camera.position.z += event.deltaY * 0.01;
+                camera.position.z = Math.max(3, Math.min(10, camera.position.z));
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            if (renderer) {
+                renderer.dispose();
+            }
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (event) => {
+            const sections = ['home', 'about', 'skills', 'education', 'projects', 'experience', 'contact'];
+            const currentIndex = sections.indexOf(currentSection);
+            
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                const nextIndex = (currentIndex + 1) % sections.length;
+                document.querySelector(`[data-section="${sections[nextIndex]}"]`).click();
+            } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                const prevIndex = (currentIndex - 1 + sections.length) % sections.length;
+                document.querySelector(`[data-section="${sections[prevIndex]}"]`).click();
+            }
+        });
+    </script>
+</body>
+</html>
